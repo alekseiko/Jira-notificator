@@ -39,7 +39,7 @@ class JiraEngine:
 		auth = client.login(self.__login, self.__password)
 		return client, auth
 		
-def execCommand (command, home = config.home):
+def execCmd (command, home = config.home):
 	proc = subprocess.Popen(command, cwd = home, \
 				 stderr = subprocess.PIPE, \
 				 stdout = subprocess.PIPE, \
@@ -56,28 +56,19 @@ def execCommand (command, home = config.home):
 
 	return stdout_value
 
-def main():
+def send (header, issues):
+	# if list of issues is not empty	
+	if issues:
+		command = "notify-send '%s' '" % header
+		for (key, desc) in issues:
+			command += "[%s] %s " % (key, desc)
+		command +="'"
+		execCmd(command)
+
+def main ():
 	jira = JiraEngine(config.jiraLogin, config.jiraPassword, config.jiraEndpoint)
-	accept = "notify-send 'Accept to master' '"
-	for (key, desc) in jira.get_issues_for_accept():
-		accept += "[%s] %s "% (key, desc)
-	accept += "'"
-
-	review = "notify-send 'Need to review' '"
-        for (key, desc) in jira.get_issues_for_review():
-                review += "[%s] %s "% (key, desc)
-	review += "'"
-
-	print accept
-	print review
-	execCommand(accept)
-	execCommand(review)
-
-#	print "To master:"
-#	print jira.get_issues_for_accept()
-#	print "To review:"
-#	print jira.get_issues_for_review()
-
+	send("Accept to master", jira.get_issues_for_accept())
+	send("Need to review", jira.get_issues_for_review())
 
 if __name__ == "__main__":
 	main()	
